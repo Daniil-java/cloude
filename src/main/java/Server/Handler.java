@@ -25,9 +25,17 @@ public class Handler implements Runnable{
     public Handler(Socket socket) throws IOException {
         is = new DataInputStream(socket.getInputStream());
         os = new DataOutputStream(socket.getOutputStream());
-        serverDir = Paths.get("data");
+        serverDir = Paths.get("C:\\Java\\cloude\\data");
         buf = new byte[SIZE];
         sendServerFiles();
+    }
+
+    public void sendServerDir() throws IOException {
+        System.out.println("SEND");
+        String dir = serverDir.toString();
+        os.writeUTF("#update_dir#");
+        os.writeUTF(dir);
+        os.flush();
     }
 
     public void sendServerFiles() throws IOException {
@@ -51,9 +59,21 @@ public class Handler implements Runnable{
                 if (command.equals("#file#")) {
                     getFile(is, serverDir, SIZE, buf);
                     sendServerFiles();
+                }else if (command.equals("#get_dir#")) {
+                    sendServerDir();
                 } else if (command.equals("#get_file#")) {
                     String fileName = is.readUTF();
                     sendFile(fileName, os, serverDir);
+                } else if (command.equals("#up_dir#")) {
+                    System.out.println("UPDIR");
+                    serverDir = serverDir.getParent();
+                    sendServerDir();
+                    sendServerFiles();
+                } else if (command.equals("#to_dir#")) {
+                    String dir = is.readUTF();
+                    serverDir = Paths.get(serverDir.toString() + "/" + dir);
+                    sendServerDir();
+                    sendServerFiles();
                 }
             }
         } catch (Exception e) {
