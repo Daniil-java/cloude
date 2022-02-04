@@ -1,20 +1,23 @@
 package Client;
 
 import GeneralClasses.Sender;
+import com.sun.javafx.scene.control.skin.LabeledText;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.Initializable;
-import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ListView;
+import javafx.scene.control.TextField;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.GridPane;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.util.ResourceBundle;
 
 public class Client implements Initializable {
@@ -24,8 +27,8 @@ public class Client implements Initializable {
     private Path clientDir;
     public ListView<String> clientView;
     public ListView<String> serverView;
-    public ChoiceBox<String> clientPathView;
-    public ChoiceBox<String> serverPathView;
+    public TextField clientViewDir;
+    public TextField serverViewDir;
     private DataInputStream is;
     private DataOutputStream os;
     private byte[] buf;
@@ -34,8 +37,34 @@ public class Client implements Initializable {
         try {
             while (true) {
                 String command = is.readUTF();
+                clientView.setOnMouseClicked(new EventHandler<MouseEvent>() {
+                    @Override
+                    public void handle(MouseEvent event) {
+                        if (event.getClickCount() == 2) {
+                            String currentItemSelected = clientView.getSelectionModel()
+                                    .getSelectedItem();
+                            clientDir = Paths.get(clientDir.toString() + "/" + currentItemSelected);
+                            updateClientView();
+                        }
+                    }
+                });
+                serverView.setOnMouseClicked(new EventHandler<MouseEvent>() {
+                    @Override
+                    public void handle(MouseEvent event) {
+                        if (event.getClickCount() == 2) {
+                            String currentItemSelected = serverView.getSelectionModel()
+                                    .getSelectedItem();
+                            try {
+                                enterToServerDir(currentItemSelected);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                });
                 System.out.println("received: " + command);// wait message
                 if (command.equals("#list#")) {
+                    updateServerDir();
                     Platform.runLater(() -> serverView.getItems().clear());
                     int filesCount = is.readInt();
                     for (int i = 0; i < filesCount; i++) {
@@ -45,6 +74,10 @@ public class Client implements Initializable {
                 } else if (command.equals("#file#")) {
                     Sender.getFile(is, clientDir, SIZE, buf);
                     Platform.runLater(this::updateClientView);
+                } else if (command.equals("#update_dir#")) {
+                    System.out.println("UPDATE");
+                    String serverDir = is.readUTF();
+                    serverViewDir.setText(serverDir);
                 }
             }
         } catch (Exception e) {
@@ -55,6 +88,7 @@ public class Client implements Initializable {
     private void updateClientView() { //Находим клиентские файлы
         try {
             clientView.getItems().clear();
+            clientViewDir.setText(clientDir.toString());
             Files.list(clientDir)
                     .map(p -> p.getFileName().toString())
                     .forEach(f -> clientView.getItems().add(f));
@@ -99,6 +133,30 @@ public class Client implements Initializable {
         String fileName = serverView.getSelectionModel().getSelectedItem();
         os.writeUTF("#get_file#");
         os.writeUTF(fileName);
+        os.flush();
+    }
+
+    public void upDir(ActionEvent actionEvent) {
+        if (clientDir.getParent() != null) {
+            clientDir = clientDir.getParent();
+        }
+        updateClientView();
+    }
+
+    public void upServerDir(ActionEvent actionEvent) throws IOException {
+        System.out.println("#up_dir#");
+        os.writeUTF("#up_dir#");
+        os.flush();
+    }
+
+    public void updateServerDir() throws IOException {
+        os.writeUTF("#get_dir#");
+        os.flush();
+    }
+
+    public void enterToServerDir(String dir) throws IOException {
+        os.writeUTF("#to_dir#");
+        os.writeUTF(dir);
         os.flush();
     }
 }
