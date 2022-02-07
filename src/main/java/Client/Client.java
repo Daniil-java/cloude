@@ -1,7 +1,13 @@
 package Client;
 
+import GeneralClasses.Processors.CloudMessageProcessor;
 import GeneralClasses.Sender;
+import GeneralClasses.model.CloudMessage;
+import GeneralClasses.model.FileMessage;
+import GeneralClasses.model.FileRequest;
 import com.sun.javafx.scene.control.skin.LabeledText;
+import io.netty.handler.codec.serialization.ObjectDecoderInputStream;
+import io.netty.handler.codec.serialization.ObjectEncoderOutputStream;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -11,6 +17,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -20,65 +27,24 @@ import java.net.URL;
 import java.nio.file.*;
 import java.util.ResourceBundle;
 
+@Slf4j
 public class Client implements Initializable {
-
-    private static final int SIZE = 256;
 
     private Path clientDir;
     public ListView<String> clientView;
     public ListView<String> serverView;
     public TextField clientViewDir;
     public TextField serverViewDir;
-    private DataInputStream is;
-    private DataOutputStream os;
-    private byte[] buf;
+    private ObjectDecoderInputStream is;
+    private ObjectEncoderOutputStream os;
+    private CloudMessageProcessor processor;
 
     private void readLoop() {
         try {
             while (true) {
-                String command = is.readUTF();
-                clientView.setOnMouseClicked(new EventHandler<MouseEvent>() {
-                    @Override
-                    public void handle(MouseEvent event) {
-                        if (event.getClickCount() == 2) {
-                            String currentItemSelected = clientView.getSelectionModel()
-                                    .getSelectedItem();
-                            clientDir = Paths.get(clientDir.toString() + "/" + currentItemSelected);
-                            updateClientView();
-                        }
-                    }
-                });
-                serverView.setOnMouseClicked(new EventHandler<MouseEvent>() {
-                    @Override
-                    public void handle(MouseEvent event) {
-                        if (event.getClickCount() == 2) {
-                            String currentItemSelected = serverView.getSelectionModel()
-                                    .getSelectedItem();
-                            try {
-                                enterToServerDir(currentItemSelected);
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-                });
-                System.out.println("received: " + command);// wait message
-                if (command.equals("#list#")) {
-                    updateServerDir();
-                    Platform.runLater(() -> serverView.getItems().clear());
-                    int filesCount = is.readInt();
-                    for (int i = 0; i < filesCount; i++) {
-                        String fileName = is.readUTF();
-                        Platform.runLater(() -> serverView.getItems().add(fileName));
-                    }
-                } else if (command.equals("#file#")) {
-                    Sender.getFile(is, clientDir, SIZE, buf);
-                    Platform.runLater(this::updateClientView);
-                } else if (command.equals("#update_dir#")) {
-                    System.out.println("UPDATE");
-                    String serverDir = is.readUTF();
-                    serverViewDir.setText(serverDir);
-                }
+                CloudMessage message = (CloudMessage) is.readObject();
+                log.info("received: {}", message);
+                processor.processMessage(message);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -100,13 +66,14 @@ public class Client implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         try {
-            buf = new byte[SIZE];
             clientDir = Paths.get(System.getProperty("user.home"));
             updateClientView();
+            initMouseListeners();
+            processor = new CloudMessageProcessor(clientDir, clientView, serverView);
             Socket socket = new Socket("localhost", 8189);
             System.out.println("Network created...");
-            is = new DataInputStream(socket.getInputStream());
-            os = new DataOutputStream(socket.getOutputStream());
+            os = new ObjectEncoderOutputStream(socket.getOutputStream());
+            is = new ObjectDecoderInputStream(socket.getInputStream());
             Thread readThread = new Thread(this::readLoop);
             readThread.setDaemon(true);
             readThread.start();
@@ -115,48 +82,89 @@ public class Client implements Initializable {
         }
     }
 
+    private void initMouseListeners() {
+
+//        clientView.setOnMouseClicked(new EventHandler<MouseEvent>() {
+//            @Override
+//            public void handle(MouseEvent event) {
+//                if (event.getClickCount() == 2) {
+//                    String currentItemSelected = clientView.getSelectionModel()
+//                            .getSelectedItem();
+//                    clientDir = Paths.get(clientDir.toString() + "/" + currentItemSelected);
+//                    updateClientView();
+//                }
+//            }
+//        });
+//        serverView.setOnMouseClicked(new EventHandler<MouseEvent>() {
+//            @Override
+//            public void handle(MouseEvent event) {
+//                if (event.getClickCount() == 2) {
+//                    String currentItemSelected = serverView.getSelectionModel()
+//                            .getSelectedItem();
+//                    try {
+//                        enterToServerDir(currentItemSelected);
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//            }
+//        });
+
+        clientView.setOnMouseClicked(e -> {
+            if (e.getClickCount() == 2) {
+                Path current = clientDir.resolve(getItem());
+                if (Files.isDirectory(current)) {
+                    clientDir = current;
+                    Platform.runLater(this::updateClientView);
+                }
+            }
+        });
+
+        serverView.setOnMouseClicked(e -> {
+            if (e.getClickCount() == 2) {
+                // todo Home Work
+            }
+        });
+
+    }
+
+    private String getItem() {
+        return clientView.getSelectionModel().getSelectedItem();
+    }
+
     public void upload(ActionEvent actionEvent) throws IOException {
         String fileName = clientView.getSelectionModel().getSelectedItem();
-        os.writeUTF("#file#");
-        os.writeUTF(fileName);
-        Path file = clientDir.resolve(fileName);
-        long size = Files.size(file);
-        byte[] bytes = Files.readAllBytes(file);
-        os.writeLong(size);
-        os.write(bytes);
-        os.flush();
-//        Sender.sendFile(fileName, os, clientDir);
+        os.writeObject(new FileMessage(clientDir.resolve(fileName)));
     }
 
 
     public void download(ActionEvent actionEvent) throws IOException {
         String fileName = serverView.getSelectionModel().getSelectedItem();
-        os.writeUTF("#get_file#");
-        os.writeUTF(fileName);
-        os.flush();
+        os.writeObject(new FileRequest(fileName));
     }
 
-    public void upDir(ActionEvent actionEvent) {
-        if (clientDir.getParent() != null) {
-            clientDir = clientDir.getParent();
-        }
-        updateClientView();
-    }
-
-    public void upServerDir(ActionEvent actionEvent) throws IOException {
-        System.out.println("#up_dir#");
-        os.writeUTF("#up_dir#");
-        os.flush();
-    }
-
-    public void updateServerDir() throws IOException {
-        os.writeUTF("#get_dir#");
-        os.flush();
-    }
-
-    public void enterToServerDir(String dir) throws IOException {
-        os.writeUTF("#to_dir#");
-        os.writeUTF(dir);
-        os.flush();
-    }
+//    public void upDir(ActionEvent actionEvent) {
+//        if (clientDir.getParent() != null) {
+//            clientDir = clientDir.getParent();
+//        }
+//        updateClientView();
+//    }
+//
+//    public void upServerDir(ActionEvent actionEvent) throws IOException {
+//        System.out.println("#up_dir#");
+//        os.writeUTF("#up_dir#");
+//        os.flush();
+//    }
+//
+//    public void updateServerDir() throws IOException {
+//        os.writeUTF("#get_dir#");
+//        os.flush();
+//    }
+//
+//    public void enterToServerDir(String dir) throws IOException {
+//        os.writeUTF("#to_dir#");
+//        os.writeUTF(dir);
+//        os.flush();
+//    }
 }
+

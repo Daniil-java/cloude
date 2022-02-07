@@ -5,7 +5,6 @@
 <?import javafx.scene.layout.AnchorPane?>
 
 
-<?import javafx.scene.control.ChoiceBox?>
 <?import javafx.scene.control.TextField?>
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="450.0"
             prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
@@ -13,8 +12,8 @@
 >
     <TextField fx:id="clientViewDir" layoutX="14.0" layoutY="15.0" prefHeight="30.0" prefWidth="220.0" editable="false" />
     <TextField fx:id="serverViewDir" layoutX="333.0" layoutY="15.0" prefHeight="30.0" prefWidth="220.0" editable="false"/>
-    <Button onAction="#upDir" layoutX="237" layoutY="15" mnemonicParsing="false" prefHeight="30.0" prefWidth="30.0" text=".."/>
-    <Button onAction="#upServerDir" layoutX="556.0" layoutY="15" mnemonicParsing="false" prefHeight="30.0" prefWidth="30.0" text=".."/>
+<!--    <Button onAction="#upDir" layoutX="237" layoutY="15" mnemonicParsing="false" prefHeight="30.0" prefWidth="30.0" text=".."/>-->
+<!--    <Button onAction="#upServerDir" layoutX="556.0" layoutY="15" mnemonicParsing="false" prefHeight="30.0" prefWidth="30.0" text=".."/>-->
     <ListView fx:id="clientView" layoutX="14.0" layoutY="50.0" prefHeight="369.0" prefWidth="253.0"/>
     <ListView fx:id="serverView" layoutX="333.0" layoutY="50.0" prefHeight="369.0" prefWidth="253.0"/>
     <Button onAction="#upload" layoutX="280.0" layoutY="117.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="40.0" text="&gt;"/>
