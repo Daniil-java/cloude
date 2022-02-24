@@ -6,16 +6,30 @@
 
 
 <?import javafx.scene.control.TextField?>
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="450.0"
-            prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
+
+<?import javafx.scene.layout.VBox?>
+
+
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.control.DialogPane?>
+<AnchorPane fx:id="mainScreen" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="647.0"
+            prefWidth="822.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="Client.Client"
 >
-    <TextField fx:id="clientViewDir" layoutX="14.0" layoutY="15.0" prefHeight="30.0" prefWidth="220.0" editable="false" />
-    <TextField fx:id="serverViewDir" layoutX="333.0" layoutY="15.0" prefHeight="30.0" prefWidth="220.0" editable="false"/>
-<!--    <Button onAction="#upDir" layoutX="237" layoutY="15" mnemonicParsing="false" prefHeight="30.0" prefWidth="30.0" text=".."/>-->
-<!--    <Button onAction="#upServerDir" layoutX="556.0" layoutY="15" mnemonicParsing="false" prefHeight="30.0" prefWidth="30.0" text=".."/>-->
-    <ListView fx:id="clientView" layoutX="14.0" layoutY="50.0" prefHeight="369.0" prefWidth="253.0"/>
-    <ListView fx:id="serverView" layoutX="333.0" layoutY="50.0" prefHeight="369.0" prefWidth="253.0"/>
-    <Button onAction="#upload" layoutX="280.0" layoutY="117.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="40.0" text="&gt;"/>
-    <Button onAction="#download" layoutX="280.0" layoutY="211.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="40.0" text="&lt;"/>
+
+    <ListView fx:id="serverView" layoutX="16.0" layoutY="93.0" prefHeight="533.0" prefWidth="791.0" />
+    <Button onAction="#upServerDir" layoutX="16.0" layoutY="61.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="37.0" text="&lt;" />
+    <Button fx:id="uploadButton" onAction="#upload" layoutX="494.0" layoutY="61.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="75.0" text="Upload" />
+    <Button onAction="#download" layoutX="583.0" layoutY="61.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="75.0" text="Download" />
+    <TextField fx:id="serverViewDir" layoutX="67.0" layoutY="61.0" prefHeight="25.0" prefWidth="413.0" editable="false" />
+    <Button onAction="#delete" layoutX="740.0" layoutY="61.0" mnemonicParsing="false" text="Delete" />
+    <Button fx:id="createNewPathButton" onAction="#createNewPath" layoutX="665.0" layoutY="61.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="65.0" text="New Path" />
+
+
 </AnchorPane>
+
+
+
+
+

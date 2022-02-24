@@ -11,9 +11,16 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 public class BaseNettyServer {
 
+    private AuthService authService;
+
+    public AuthService getAuthService() {
+        return authService;
+    }
+
     public BaseNettyServer(ChannelHandler ... handlers) {
         EventLoopGroup auth = new NioEventLoopGroup(1);
         EventLoopGroup worker = new NioEventLoopGroup();
+        AuthService.connection();
         try {
             ServerBootstrap bootstrap = new ServerBootstrap();
             bootstrap.group(auth, worker)
@@ -30,6 +37,7 @@ public class BaseNettyServer {
         } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {
+            AuthService.disconnect();
             auth.shutdownGracefully();
             worker.shutdownGracefully();
         }

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.text.Font?>
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
+            prefHeight="209.0" prefWidth="400.0"
+            xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="Client.RegistryDialogController"
+>
+
+        <TextField fx:id="loginRegistryField" layoutX="113.0" layoutY="35.0" prefHeight="26.0" prefWidth="261.0"/>
+        <TextField fx:id="passwordRegistryField" layoutX="113.0" layoutY="78.0" prefHeight="26.0" prefWidth="261.0" />
+        <TextField fx:id="emailField" layoutX="113.0" layoutY="120.0" prefHeight="26.0" prefWidth="261.0" />
+        <Button onAction="#createLogin" layoutX="21.0" layoutY="164.0" prefHeight="30.0" prefWidth="353.0" text="Регистрация" />
+        <Text layoutX="20.0" layoutY="55.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Login*" wrappingWidth="83.13671875">
+            <font>
+                <Font size="18.0" />
+            </font>
+        </Text>
+        <Text layoutX="21.0" layoutY="98.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Password*">
+            <font>
+                <Font size="18.0" />
+            </font>
+        </Text>
+        <Text layoutX="21.0" layoutY="140.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Email">
+            <font>
+                <Font size="18.0" />
+            </font>
+        </Text>
+
+</AnchorPane>
