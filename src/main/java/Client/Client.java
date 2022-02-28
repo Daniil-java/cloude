@@ -1,162 +1,172 @@
 package Client;
 
-import GeneralClasses.Sender;
-import com.sun.javafx.scene.control.skin.LabeledText;
-import javafx.application.Platform;
+import GeneralClasses.Processors.CloudMessageProcessor;
+import GeneralClasses.model.*;
+import io.netty.handler.codec.serialization.ObjectDecoderInputStream;
+import io.netty.handler.codec.serialization.ObjectEncoderOutputStream;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
-import javafx.scene.input.MouseButton;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.GridPane;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import lombok.extern.slf4j.Slf4j;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.URL;
 import java.nio.file.*;
 import java.util.ResourceBundle;
 
-public class Client implements Initializable {
+@Slf4j
+public class Client {
 
-    private static final int SIZE = 256;
+    @FXML
+    private AnchorPane mainScreen;
 
     private Path clientDir;
-    public ListView<String> clientView;
+//    public ListView<String> clientView;
     public ListView<String> serverView;
     public TextField clientViewDir;
     public TextField serverViewDir;
-    private DataInputStream is;
-    private DataOutputStream os;
-    private byte[] buf;
 
-    private void readLoop() {
-        try {
-            while (true) {
-                String command = is.readUTF();
-                clientView.setOnMouseClicked(new EventHandler<MouseEvent>() {
-                    @Override
-                    public void handle(MouseEvent event) {
-                        if (event.getClickCount() == 2) {
-                            String currentItemSelected = clientView.getSelectionModel()
-                                    .getSelectedItem();
-                            clientDir = Paths.get(clientDir.toString() + "/" + currentItemSelected);
-                            updateClientView();
-                        }
-                    }
-                });
-                serverView.setOnMouseClicked(new EventHandler<MouseEvent>() {
-                    @Override
-                    public void handle(MouseEvent event) {
-                        if (event.getClickCount() == 2) {
-                            String currentItemSelected = serverView.getSelectionModel()
-                                    .getSelectedItem();
-                            try {
-                                enterToServerDir(currentItemSelected);
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-                });
-                System.out.println("received: " + command);// wait message
-                if (command.equals("#list#")) {
-                    updateServerDir();
-                    Platform.runLater(() -> serverView.getItems().clear());
-                    int filesCount = is.readInt();
-                    for (int i = 0; i < filesCount; i++) {
-                        String fileName = is.readUTF();
-                        Platform.runLater(() -> serverView.getItems().add(fileName));
-                    }
-                } else if (command.equals("#file#")) {
-                    Sender.getFile(is, clientDir, SIZE, buf);
-                    Platform.runLater(this::updateClientView);
-                } else if (command.equals("#update_dir#")) {
-                    System.out.println("UPDATE");
-                    String serverDir = is.readUTF();
-                    serverViewDir.setText(serverDir);
+//    private ObjectDecoderInputStream is;
+//    private ObjectEncoderOutputStream os;
+//    private CloudMessageProcessor processor;
+
+    FileChooser fileChooser = new FileChooser();
+
+//    private void readLoop() {
+//        try {
+//            while (true) {
+//                CloudMessage message = (CloudMessage) is.readObject();
+//                log.info("received: {}", message);
+//                processor.processMessage(message);
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//    }
+
+//    @Override
+//    public void initialize(URL location, ResourceBundle resources) {
+//        try {
+//            clientDir = Paths.get(System.getProperty("user.home"));
+//            updateClientView();
+//            initMouseListeners();
+//            processor = new CloudMessageProcessor(clientDir, clientView, serverView);
+//            processor = new CloudMessageProcessor(serverView);
+//            Socket socket = new Socket("localhost", 8189);
+//            System.out.println("Network created...");
+//            os = new ObjectEncoderOutputStream(socket.getOutputStream());
+//            is = new ObjectDecoderInputStream(socket.getInputStream());
+//            Thread readThread = new Thread(this::readLoop);
+//            readThread.setDaemon(true);
+//            readThread.start();
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//    }
+
+    private void initMouseListeners() {
+        serverView.setOnMouseClicked(e -> {
+            if (e.getClickCount() == 2) {
+                String currentItemSelected = serverView.getSelectionModel()
+                        .getSelectedItem();
+                try {
+                    enterToServerDir(currentItemSelected);
+                } catch (IOException ioException) {
+                    ioException.printStackTrace();
                 }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void updateClientView() { //Находим клиентские файлы
-        try {
-            clientView.getItems().clear();
-            clientViewDir.setText(clientDir.toString());
-            Files.list(clientDir)
-                    .map(p -> p.getFileName().toString())
-                    .forEach(f -> clientView.getItems().add(f));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void initialize(URL location, ResourceBundle resources) {
-        try {
-            buf = new byte[SIZE];
-            clientDir = Paths.get(System.getProperty("user.home"));
-            updateClientView();
-            Socket socket = new Socket("localhost", 8189);
-            System.out.println("Network created...");
-            is = new DataInputStream(socket.getInputStream());
-            os = new DataOutputStream(socket.getOutputStream());
-            Thread readThread = new Thread(this::readLoop);
-            readThread.setDaemon(true);
-            readThread.start();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        });
     }
 
     public void upload(ActionEvent actionEvent) throws IOException {
-        String fileName = clientView.getSelectionModel().getSelectedItem();
-        os.writeUTF("#file#");
-        os.writeUTF(fileName);
-        Path file = clientDir.resolve(fileName);
-        long size = Files.size(file);
-        byte[] bytes = Files.readAllBytes(file);
-        os.writeLong(size);
-        os.write(bytes);
-        os.flush();
-//        Sender.sendFile(fileName, os, clientDir);
+        File selectedFile = fileChooser.showOpenDialog(null);
+//        os.writeObject(new FileMessage(clientDir.resolve(selectedFile.toString())));
     }
-
 
     public void download(ActionEvent actionEvent) throws IOException {
         String fileName = serverView.getSelectionModel().getSelectedItem();
-        os.writeUTF("#get_file#");
-        os.writeUTF(fileName);
-        os.flush();
+//        os.writeObject(new FileRequest(fileName));
     }
 
-    public void upDir(ActionEvent actionEvent) {
-        if (clientDir.getParent() != null) {
-            clientDir = clientDir.getParent();
-        }
-        updateClientView();
+    public void delete(ActionEvent actionEvent) throws IOException {
+        String fileName = serverView.getSelectionModel().getSelectedItem();
+//        os.writeObject(new Delete(fileName));
+    }
+
+    private void enterToServerDir(String currentItemSelected) throws IOException {
+        String fileName = serverView.getSelectionModel().getSelectedItem();
+//        os.writeObject(new ChangeInServerDir(fileName));
     }
 
     public void upServerDir(ActionEvent actionEvent) throws IOException {
-        System.out.println("#up_dir#");
-        os.writeUTF("#up_dir#");
-        os.flush();
+//        os.writeObject(new ChangeOutServerDir());
+    }
+//
+//    public void viewServerDir(ActionEvent actionEvent) throws IOException {
+//        os.writeObject(new ChangeServerDir());
+//    }
+
+    public void createNewPath(ActionEvent actionEvent) throws IOException {
+        NewPathDialogController dialogController = new NewPathDialogController();
+        dialogController = (NewPathDialogController) openNewDialog("../NewPathDialog.fxml", dialogController);
+
+        if (dialogController.getDirName() != null) {
+//            os.writeObject(new CreateNewPathMessage(dialogController.getDirName()));
+        }
     }
 
-    public void updateServerDir() throws IOException {
-        os.writeUTF("#get_dir#");
-        os.flush();
+//    public void tryToAuthUser() throws IOException, ClassNotFoundException {
+//        AuthDialogController dialogController = new AuthDialogController();
+//        dialogController = (AuthDialogController) openNewDialog("../EnterDialog.fxml", dialogController);
+//
+//        os.writeObject(new LoginAndPasswordMessage(dialogController.getJsonMessage()));
+//
+//    }
+
+    public void toRegistry() throws IOException {
+        RegistryDialogController dialogController = new RegistryDialogController();
+        dialogController = (RegistryDialogController) openNewDialog( "../RegistryDialog.fxml", dialogController);
+
+//        os.writeObject(new RegistryLoginAndPasswordMessage(dialogController.getJsonMessage()));
+        System.out.println(dialogController.getJsonMessage().toString());
     }
 
-    public void enterToServerDir(String dir) throws IOException {
-        os.writeUTF("#to_dir#");
-        os.writeUTF(dir);
-        os.flush();
+    public Object openNewDialog(String url, Object dialog) throws IOException {
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource(url));
+        Parent parent = fxmlLoader.load();
+        dialog = fxmlLoader.<Dialog>getController();
+        Scene scene = new Scene(parent);
+        Stage stage = new Stage();
+        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.setScene(scene);
+        stage.showAndWait();
+        stage.show();
+        return dialog;
     }
+
+//    private void updateClientView() { //Находим клиентские файлы
+//        try {
+//            clientView.getItems().clear();
+//            clientViewDir.setText(clientDir.toString());
+//            Files.list(clientDir)
+//                    .map(p -> p.getFileName().toString())
+//                    .forEach(f -> clientView.getItems().add(f));
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
+
 }
+
