@@ -8,12 +8,9 @@ import javafx.stage.Stage;
 import javafx.scene.control.TextField;
 
 public class NewPathDialogController extends Dialog{
-
     @FXML
     private TextField pathTextField;
-
     private String dirName;
-
     public String getDirName() {
         return dirName;
     }
@@ -41,7 +38,6 @@ public class NewPathDialogController extends Dialog{
         alert.setTitle("New path creating");
         alert.setHeaderText("ALERT!");
         alert.setContentText("Пожалуйста назовите новую папку");
-
         alert.showAndWait();
     }
 }

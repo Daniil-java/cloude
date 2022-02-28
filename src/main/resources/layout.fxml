@@ -13,21 +13,186 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.control.DialogPane?>
-<AnchorPane fx:id="mainScreen" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="647.0"
-            prefWidth="822.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="Client.Client"
+
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.text.Font?>
+
+<HBox maxHeight="-Infinity" maxWidth="-Infinity"
+      minHeight="-Infinity" minWidth="-Infinity"
+      prefHeight="541.0" prefWidth="647.0"
+      xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="Client.MainScreenController"
 >
+    <children>
+        <VBox prefHeight="553.0" prefWidth="157.0">
+            <children>
+                <VBox prefHeight="275.0" prefWidth="77.0">
+                    <children>
+                        <Button onAction="#showMyFiles" mnemonicParsing="false" prefHeight="282.0" prefWidth="77.0" text="My Files" />
+                    </children>
+                </VBox>
+                <Button onAction="#showSharingFiles" mnemonicParsing="false" prefHeight="292.0" prefWidth="69.0" text="Sharings" />
+            </children>
+        </VBox>
+        <VBox prefHeight="553.0" prefWidth="470.0">
+            <children>
+                <VBox prefHeight="20.0" prefWidth="393.0">
+                    <children>
+                        <HBox prefHeight="51.0" prefWidth="393.0">
+                            <children>
+                                <Button onAction="#upServerDir" mnemonicParsing="false" prefHeight="43.0" prefWidth="38.0" text="&lt;" />
+<!--                                <Text fx:id="serverDirText" strokeType="OUTSIDE" strokeWidth="0.0" textAlignment="LEFT" wrappingWidth="396">-->
+<!--                                    <font>-->
+<!--                                        <Font size="18.0" />-->
+<!--                                    </font>-->
+<!--                                </Text>-->
+                                <TextField fx:id="serverDirField" prefHeight="25.0" prefWidth="396.0" />
+                            </children>
+                        </HBox>
+                    </children>
+                </VBox>
+                <AnchorPane prefHeight="534.0" prefWidth="390.0">
+                    <children>
+                        <ListView fx:id="serverView" prefHeight="516.0" prefWidth="417.0" />
+                        <ListView fx:id="sharingServerView" prefHeight="516.0" prefWidth="417.0" />
+                    </children>
+                </AnchorPane>
+            </children>
+        </VBox>
+        <VBox fx:id="filesScreen" prefHeight="553.0" prefWidth="256.0">
+            <children>
+                <VBox prefHeight="556.0" prefWidth="165.0">
+                    <children>
+                        <VBox prefHeight="200.0" prefWidth="100.0">
+                            <children>
+                                <Button onAction="#createNewPath" mnemonicParsing="false" prefHeight="119.0" prefWidth="194.0" text="NEW PATH" />
+                            </children>
+                        </VBox>
+                        <VBox prefHeight="200.0" prefWidth="100.0">
+                            <children>
+                                <Button onAction="#upload" mnemonicParsing="false" prefHeight="138.0" prefWidth="264.0" text="UPLOAD" />
+                            </children>
+                        </VBox>
+                        <VBox prefHeight="200.0" prefWidth="100.0">
+                            <children>
+                                <Button onAction="#download" mnemonicParsing="false" prefHeight="168.0" prefWidth="282.0" text="DOWNLOAD" />
+                            </children>
+                        </VBox>
+                        <VBox prefHeight="200.0" prefWidth="100.0">
+                            <children>
+                                <Button onAction="#rename" mnemonicParsing="false" prefHeight="170.0" prefWidth="247.0" text="RENAME" />
+                            </children>
+                        </VBox>
+                        <VBox prefHeight="200.0" prefWidth="100.0">
+                            <children>
+                                <Button mnemonicParsing="false" prefHeight="190.0" prefWidth="272.0" text="SHARE" />
+                            </children>
+                        </VBox>
+                        <VBox prefHeight="200.0" prefWidth="100.0">
+                            <children>
+                                <Button onAction="#share" mnemonicParsing="false" prefHeight="204.0" prefWidth="280.0" text="DOWNLOAD SHARE FILE" />
+                            </children>
+                        </VBox>
+                        <VBox prefHeight="200.0" prefWidth="100.0">
+                            <children>
+                                <Button onAction="#delete" mnemonicParsing="false" prefHeight="204.0" prefWidth="280.0" text="DELETE" />
+                            </children>
+                        </VBox>
+                        <Button onAction="#setMyDir" mnemonicParsing="false" prefHeight="204.0" prefWidth="280.0" text="SET MY DIR" />
+                    </children>
+                </VBox>
+            </children>
+        </VBox>
+    </children>
+</HBox>
 
-    <ListView fx:id="serverView" layoutX="16.0" layoutY="93.0" prefHeight="533.0" prefWidth="791.0" />
-    <Button onAction="#upServerDir" layoutX="16.0" layoutY="61.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="37.0" text="&lt;" />
-    <Button fx:id="uploadButton" onAction="#upload" layoutX="494.0" layoutY="61.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="75.0" text="Upload" />
-    <Button onAction="#download" layoutX="583.0" layoutY="61.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="75.0" text="Download" />
-    <TextField fx:id="serverViewDir" layoutX="67.0" layoutY="61.0" prefHeight="25.0" prefWidth="413.0" editable="false" />
-    <Button onAction="#delete" layoutX="740.0" layoutY="61.0" mnemonicParsing="false" text="Delete" />
-    <Button fx:id="createNewPathButton" onAction="#createNewPath" layoutX="665.0" layoutY="61.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="65.0" text="New Path" />
+<!--<HBox maxHeight="-Infinity" maxWidth="-Infinity"-->
+<!--      minHeight="-Infinity" minWidth="-Infinity"-->
+<!--      prefHeight="553.0" prefWidth="725.0"-->
+<!--      xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"-->
+<!--      fx:controller="Client.MainScreenController"-->
+<!--&gt;-->
+<!--    <children>-->
+<!--        <VBox prefHeight="553.0" prefWidth="157.0">-->
+<!--            <children>-->
+<!--                <VBox prefHeight="275.0" prefWidth="77.0">-->
+<!--                    <children>-->
+<!--                        <Button onAction="#showMyFiles" mnemonicParsing="false" prefHeight="282.0" prefWidth="77.0" text="My Files" />-->
+<!--                    </children>-->
+<!--                </VBox>-->
+<!--                <Button onAction="#showSharingFiles" mnemonicParsing="false" prefHeight="292.0" prefWidth="69.0" text="Sharings" />-->
+<!--            </children>-->
+<!--        </VBox>-->
+<!--        <VBox prefHeight="553.0" prefWidth="470.0">-->
+<!--            <children>-->
+<!--                <VBox prefHeight="20.0" prefWidth="393.0">-->
+<!--                    <children>-->
+<!--                        <HBox prefHeight="51.0" prefWidth="393.0">-->
+<!--                            <children>-->
+<!--                                <Button onAction="#upServerDir" mnemonicParsing="false" prefHeight="43.0" prefWidth="38.0" text="&lt;" />-->
+<!--                                <TextField prefHeight="25.0" prefWidth="268.0" />-->
+<!--                                <Button onAction="#createNewPath" fx:id="createNewPathButton" mnemonicParsing="false" prefHeight="25.0" prefWidth="77.0" text="PATH" />-->
+<!--                                <Button onAction="#upload" fx:id="uploadButton" mnemonicParsing="false" prefHeight="25.0" prefWidth="87.0" text="UPLOAD" />-->
+<!--                            </children>-->
+<!--                        </HBox>-->
+<!--                    </children>-->
+<!--                </VBox>-->
+<!--                <AnchorPane prefHeight="534.0" prefWidth="390.0">-->
+<!--                    <children>-->
+<!--                        <ListView fx:id="serverView" prefHeight="528.0" prefWidth="398.0" />-->
+<!--                        <ListView fx:id="sharingServerView" prefHeight="528.0" prefWidth="398.0" />-->
+<!--                    </children>-->
+<!--                </AnchorPane>-->
+<!--            </children>-->
+<!--        </VBox>-->
+<!--        <VBox fx:id="filesScreen" prefHeight="553.0" prefWidth="256.0">-->
+<!--            <children>-->
+<!--                <VBox prefHeight="380.0" prefWidth="256.0">-->
+<!--                    <children>-->
+<!--                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Перенести в:" textAlignment="CENTER" wrappingWidth="257.13671875">-->
+<!--                            <font>-->
+<!--                                <Font size="18.0" />-->
+<!--                            </font>-->
+<!--                        </Text>-->
+<!--                        <ListView fx:id="filesScreenView" prefHeight="349.0" prefWidth="258.0" />-->
+<!--                    </children>-->
+<!--                </VBox>-->
+<!--                <VBox prefHeight="200.0" prefWidth="100.0">-->
+<!--                    <children>-->
+<!--                        <VBox prefHeight="200.0" prefWidth="100.0">-->
+<!--                            <children>-->
+<!--                                <Button onAction="#move" mnemonicParsing="false" prefHeight="25.0" prefWidth="284.0" text="MOVE" />-->
+<!--                                <Button fx:id="myFilesButton" onAction="#download" mnemonicParsing="false" prefHeight="25.0" prefWidth="301.0" text="DOWNLOAD" />-->
+<!--                                <Button onAction="#share" mnemonicParsing="false" prefHeight="25.0" prefWidth="266.0" text="SHARE" />-->
+<!--                                <Button onAction="#downloadSharingFiles" mnemonicParsing="false" prefHeight="25.0" prefWidth="266.0" text="LOAD SHARE FILES" />-->
+<!--                                <Button onAction="#delete" mnemonicParsing="false" prefHeight="25.0" prefWidth="266.0" text="DELETE" />-->
+<!--                                <Button onAction="#rename" mnemonicParsing="false" prefHeight="25.0" prefWidth="266.0" text="RENAME" />-->
+<!--                                <Button onAction="#setMyDir" mnemonicParsing="false" prefHeight="25.0" prefWidth="266.0" text="SET DIR" />-->
+<!--                            </children>-->
+<!--                        </VBox>-->
+<!--                    </children>-->
+<!--                </VBox>-->
+<!--            </children>-->
+<!--        </VBox>-->
+<!--    </children>-->
+<!--</HBox>-->
+
+<!--<AnchorPane fx:id="mainScreen" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="647.0"-->
+<!--            prefWidth="822.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"-->
+<!--            fx:controller="Client.MainScreenController"-->
+<!--&gt;-->
+
+<!--    <ListView fx:id="serverView" layoutX="16.0" layoutY="93.0" prefHeight="533.0" prefWidth="791.0" />-->
+<!--    <Button onAction="#upServerDir" layoutX="16.0" layoutY="61.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="37.0" text="&lt;" />-->
+<!--    <Button fx:id="uploadButton" onAction="#upload" layoutX="494.0" layoutY="61.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="75.0" text="Upload" />-->
+<!--    <Button onAction="#download" layoutX="583.0" layoutY="61.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="75.0" text="Download" />-->
+<!--    <TextField fx:id="serverViewDir" layoutX="67.0" layoutY="61.0" prefHeight="25.0" prefWidth="413.0" editable="false" />-->
+<!--    <Button onAction="#delete" layoutX="740.0" layoutY="61.0" mnemonicParsing="false" text="Delete" />-->
+<!--    <Button fx:id="createNewPathButton" onAction="#createNewPath" layoutX="665.0" layoutY="61.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="65.0" text="New Path" />-->
 
 
-</AnchorPane>
+<!--</AnchorPane>-->
 
 
 

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<?import javafx.scene.text.Text?>
+<AnchorPane fx:id="newPathDialog" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="108.0" prefWidth="231.0"
+            xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="Client.RenameDialogController"
+>
+
+    <Text layoutX="53.0" layoutY="27.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Назовите новую папку" />
+    <TextField fx:id="renameTextField" layoutX="32.0" layoutY="33.0" prefHeight="25.0" prefWidth="168.0" />
+    <Button fx:id="renameButton" onAction="#rename" layoutX="32.0" layoutY="64.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="84.0" text="Rename" />
+    <Button onAction="#cancel" layoutX="116.0" layoutY="64.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="84.0" text="Cancel" />
+</AnchorPane>

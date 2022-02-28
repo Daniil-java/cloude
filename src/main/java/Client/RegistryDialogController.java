@@ -1,5 +1,6 @@
 package Client;
 
+import GeneralClasses.model.CloudMessage;
 import GeneralClasses.model.CommandType;
 import GeneralClasses.model.LoginAndPasswordMessage;
 import GeneralClasses.model.RegistryLoginAndPasswordMessage;
@@ -29,7 +30,7 @@ public class RegistryDialogController extends Dialog {
     private String passwordRegistry;
     private String email;
 
-    public void createLogin(ActionEvent actionEvent) throws IOException {
+    public void createLogin(ActionEvent actionEvent) throws IOException, ClassNotFoundException {
         loginRegistry = loginRegistryField.getText();
         passwordRegistry = passwordRegistryField.getText();
         email = emailField.getText();
@@ -40,18 +41,17 @@ public class RegistryDialogController extends Dialog {
 
         App.sendMessage(new RegistryLoginAndPasswordMessage(jsonMessage));
 
-        do {
-            switch (App.getAuthMessage().getType()) {
-                case REGISTRY_SUCCESSFUL:
-                    App.clearAuthMessage();
-                    closeDialog(actionEvent);
-                    break;
-                case REGISTRY_DENIED:
-                    showAlert("Данный логин уже занят");
-                    App.clearAuthMessage();
-                    break;
-            }
-        } while (!App.getAuthMessage().getType().equals(CommandType.REGISTRY_SUCCESSFUL));
+        CloudMessage cloudMessage = App.getMessage();;
+
+        if (cloudMessage.getType().equals(CommandType.ACCESSED_MESSAGE)) {
+            showAlert("Операция была успешно выполнена");
+            closeDialog(actionEvent);
+        } else if (cloudMessage.getType().equals(CommandType.REGISTRY_DENIED)) {
+            showAlert("Данный логин уже занят");
+            loginRegistryField.clear();
+        } else {
+            showAlert("Ошибка соединения");
+        }
     }
 
     @FXML
