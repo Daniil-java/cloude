@@ -1,57 +1,43 @@
 package Client;
 
-import GeneralClasses.Processors.CloudMessageProcessor;
-import GeneralClasses.model.CloudMessage;
-import GeneralClasses.model.LoginAndPasswordMessage;
+import GeneralClasses.model.*;
 import io.netty.handler.codec.serialization.ObjectDecoderInputStream;
 import io.netty.handler.codec.serialization.ObjectEncoderOutputStream;
 import javafx.application.Application;
-import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.ListView;
-import javafx.scene.control.TextField;
-import javafx.scene.layout.AnchorPane;
-import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.net.URL;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ResourceBundle;
 
 @Slf4j
 public class App extends Application {
 
-    public ListView<String> serverView = new ListView<>();
+    private static Stage stage = new Stage();
+
+    public static ListView<String> serverView = new ListView<>();
 
     private static ObjectDecoderInputStream is;
     private static ObjectEncoderOutputStream os;
-    private CloudMessageProcessor processor;
     private Socket socket;
 
-    private static CloudMessage authMessage;
-
-//    @Override
-//    public void start(Stage primaryStage) throws Exception {
-//        Parent parent = FXMLLoader.load(getClass().getResource("../layout.fxml"));
-////        Parent parent = FXMLLoader.load(getClass().getResource("../EnterDialog.fxml"));
-//        primaryStage.setScene(new Scene(parent));
-//        primaryStage.show();
-//    }
+    private static CloudMessage message;
+    private static CloudMessage authMessage; //Заглушка :/
 
     @Override
     public void start(Stage primaryStage) throws Exception {
         try {
             connectServer();
+            authMessage = App.getMessage();
+            authMessage = App.getMessage();
             openAuthDialog();
             openMainScreen();
+            stop();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -62,25 +48,23 @@ public class App extends Application {
         Parent parent = fxmlLoader.load();
         AuthDialogController dialog = fxmlLoader.<AuthDialogController>getController();
         Scene scene = new Scene(parent);
-        Stage stage = new Stage();
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.setScene(scene);
-        stage.show();
+        stage.showAndWait();
     }
 
     public void openMainScreen() throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("../layout.fxml"));
         Parent parent = fxmlLoader.load();
-        Client client = fxmlLoader.<Client>getController();
+        MainScreenController client = fxmlLoader.<MainScreenController>getController();
         Scene scene = new Scene(parent);
-        Stage stage = new Stage();
-//        stage.initModality(Modality.APPLICATION_MODAL);
-        stage.setScene(scene);
-        stage.show();
+        Stage mainStage = new Stage();
+        mainStage.initModality(Modality.APPLICATION_MODAL);
+        mainStage.setScene(scene);
+        mainStage.showAndWait();
     }
 
     public void connectServer() throws IOException {
-        processor = new CloudMessageProcessor(serverView);
         socket = new Socket("localhost", 8189);
         System.out.println("Network created...");
         os = new ObjectEncoderOutputStream(socket.getOutputStream());
@@ -95,16 +79,22 @@ public class App extends Application {
     }
 
     private void readLoop() {
-        try {
-            while (true) {
-                CloudMessage message = (CloudMessage) is.readObject();
-                log.info("received: {}", message);
-                processor.processMessage(message);
-                authMessage = message;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+//        try {
+//            while (true) {
+////                CloudMessage message = (CloudMessage) is.readObject();
+//                CloudMessage message = getMessage();
+//                log.info("received: {}", message);
+////                processor.processMessage(message);
+//                authMessage = message;
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+    }
+
+    public static CloudMessage getMessage() throws IOException, ClassNotFoundException {
+        message = (CloudMessage) is.readObject();
+        return message;
     }
 
     public void stop() {
@@ -123,13 +113,5 @@ public class App extends Application {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    public static CloudMessage getAuthMessage() {
-        return authMessage;
-    }
-
-    public static void clearAuthMessage() {
-        App.authMessage = null;
     }
 }

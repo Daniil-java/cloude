@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.SQLException;
+import java.util.List;
 
 import GeneralClasses.model.*;
 import io.netty.channel.ChannelHandlerContext;
@@ -12,17 +13,17 @@ import io.netty.channel.SimpleChannelInboundHandler;
 
 public class CloudServerHandler extends SimpleChannelInboundHandler<CloudMessage> {
 
+    private Path rootDir;
     private Path currentDir;
-
     private AuthService authService;
-
     private String login;
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         // init client dir
         AuthService.connection();
-        currentDir = Paths.get("C:\\Java\\cloude\\data");
+        rootDir = Paths.get("C:\\Java\\cloude\\data\\users");
+        currentDir = Paths.get("C:\\Java\\cloude\\data\\users");
         sendList(ctx);
     }
 
@@ -40,26 +41,19 @@ public class CloudServerHandler extends SimpleChannelInboundHandler<CloudMessage
                 break;
 
             case DELETE:
-                System.out.println("DELETE");
-                processDelete((Delete) cloudMessage);
-                sendList(ctx);
+                processDelete((Delete) cloudMessage, ctx);
                 break;
 
             case CHANGE_OUT_SERVER_DIR:     //Выход из текущей директории
-                if (currentDir.getParent() != null) {
-                    currentDir = currentDir.getParent();
-                    sendList(ctx);
-                }
+                processChangeOutServerDir((ChangeOutServerDir) cloudMessage, ctx);
                 break;
 
             case CHANGE_IN_SERVER_DIR:  //Вход в указанную директорию
-                processChangeInServerDir((ChangeInServerDir) cloudMessage);
-                sendList(ctx);
+                processChangeInServerDir((ChangeInServerDir) cloudMessage, ctx);
                 break;
 
             case CREATE_NEW_PATH:   //Создание новой папки
-                processNewPathCreating((CreateNewPathMessage) cloudMessage);
-                sendList(ctx);
+                processNewPathCreating((CreateNewPathMessage) cloudMessage, ctx);
                 break;
 
             case LOGIN_AND_PASSWORD_MESSAGE:    //Клиент делает попытку авторизации
@@ -69,32 +63,84 @@ public class CloudServerHandler extends SimpleChannelInboundHandler<CloudMessage
             case REGISTRY_LOGIN_AND_PASSWORD_MESSAGE:   //Клиент делает попытку регистрации
                 processOfRegistry((RegistryLoginAndPasswordMessage) cloudMessage, ctx);
                 break;
+
+            case SHARE:
+                processOfSharing((ShareMessage) cloudMessage, ctx);
+                break;
+
+            case SHARE_FILE_REQUEST:
+                processOfSharingFileRequest((ShareFileRequest) cloudMessage, ctx);
+                break;
+                
+            case SHARE_FILE_DOWNLOAD:
+                processOfSharingFileDownload((ShareFileDownload) cloudMessage, ctx);
+                break;
+
+            case RENAME:
+                processOfRename((RenameMessage) cloudMessage, ctx);
+                break;
+        }
+    }
+
+    private void processOfRename(RenameMessage cloudMessage, ChannelHandlerContext ctx) throws IOException {
+        String oldName = currentDir + "\\" + cloudMessage.getOldName();
+        String newName = currentDir + "\\" + cloudMessage.getNewName();
+        Path source = Paths.get(oldName);
+        Path target = Paths.get(newName);
+        System.out.println(oldName);
+        System.out.println("RENAME");
+        Files.move(source, source.resolveSibling(cloudMessage.getNewName()));
+        sendList(ctx);
+    }
+
+    private void processOfSharingFileDownload(ShareFileDownload cloudMessage, ChannelHandlerContext ctx) throws IOException {
+        Path path = rootDir.resolve(cloudMessage.getDirName());
+        ctx.writeAndFlush(new ShareFileMessage(path));
+    }
+
+    private void processOfSharingFileRequest(ShareFileRequest cloudMessage, ChannelHandlerContext ctx) throws SQLException, IOException {
+        List<String> urls = AuthService.getSharingFiles(AuthService.findUserId(login));
+        System.out.println(urls);
+        ctx.writeAndFlush(new ShareListMessage(urls));
+    }
+
+    private void processOfSharing(ShareMessage cloudMessage, ChannelHandlerContext ctx) throws SQLException {   //JSON содержит логин получателя
+        boolean success = AuthService.shareFile(
+                AuthService.findUserId(cloudMessage.getJsonMessage().get("login").toString()),
+                currentDir + "\\" + cloudMessage.getFileName()
+        );
+
+        if (success) {
+            ctx.writeAndFlush(new AccessedMessage());
+        } else {
+            ctx.writeAndFlush(new AccessDeniedMessage());
         }
     }
 
     private void processOfRegistry(RegistryLoginAndPasswordMessage cloudMessage, ChannelHandlerContext ctx) throws SQLException, IOException {
-        boolean Access = AuthService.setNewUser(
+        boolean access = AuthService.setNewUser(
                 cloudMessage.getJsonMessage().get("login").toString(),
                 cloudMessage.getJsonMessage().get("password").toString(),
                 cloudMessage.getJsonMessage().get("email").toString()
         );
 
-        if (Access) {
+        if (access) {
+            System.out.println("ПРАВДА");
             processNewPathCreating(cloudMessage.getJsonMessage().get("login").toString());
-            ctx.writeAndFlush(new RegistrySuccessfulMessage());
+            ctx.writeAndFlush(new AccessedMessage());
         } else {
             ctx.writeAndFlush(new RegistryDeniedMessage());
         }
     }
 
     private boolean processOfAccess(LoginAndPasswordMessage cloudMessage, ChannelHandlerContext ctx) throws IOException {
-        boolean Access = AuthService.getAccess(
+        boolean access = AuthService.getAccess(
                 cloudMessage.getJsonMessage().get("login").toString(),
                 cloudMessage.getJsonMessage().get("password").toString()
         );
 
-        if (Access) {
-            currentDir = Paths.get("C:\\Java\\cloude\\data\\" + cloudMessage.getJsonMessage().get("login").toString());
+        if (access) {
+            currentDir = Paths.get("C:\\Java\\cloude\\data\\users\\" + cloudMessage.getJsonMessage().get("login").toString());
             login = cloudMessage.getJsonMessage().get("login").toString();
             ctx.writeAndFlush(new AccessedMessage());
             sendList(ctx);
@@ -106,11 +152,12 @@ public class CloudServerHandler extends SimpleChannelInboundHandler<CloudMessage
         return false;
     }
 
-    private void processNewPathCreating(CreateNewPathMessage cloudMessage) throws IOException {
+    private void processNewPathCreating(CreateNewPathMessage cloudMessage, ChannelHandlerContext ctx) throws IOException {
         String dirName = currentDir + "\\" + cloudMessage.getDirName();
         Path path = Paths.get(dirName);
         if (!Files.exists(path)) {
             Files.createDirectory(path);
+            sendList(ctx);
             System.out.println("Directory created");
         } else {
             System.out.println("Directory already exists");
@@ -128,28 +175,50 @@ public class CloudServerHandler extends SimpleChannelInboundHandler<CloudMessage
         }
     }
 
-    private void processDelete(Delete cloudMessage) throws IOException {
+    private void processDelete(Delete cloudMessage, ChannelHandlerContext ctx) throws IOException, SQLException {
         System.out.println("DELETE");
         Files.delete(currentDir.resolve(cloudMessage.getFileName()));
+        AuthService.deleteFile(currentDir + "\\" + cloudMessage.getFileName());
+        sendList(ctx);
     }
 
     private void sendList(ChannelHandlerContext ctx) throws IOException {
         ctx.writeAndFlush(new ListMessage(currentDir));
+        sendDir(ctx);
     }
 
-    private void processChangeInServerDir(ChangeInServerDir cloudMessage) throws IOException {
+    private void sendDir(ChannelHandlerContext ctx) {
+        ctx.writeAndFlush(new ViewServerDir(currentDir.toString()));
+    }
+
+    private void processChangeInServerDir(ChangeInServerDir cloudMessage, ChannelHandlerContext ctx) throws IOException {
         currentDir = Paths.get(currentDir.toString() + "\\" + cloudMessage.getFileName());
+        sendList(ctx);
+    }
+
+    private boolean processChangeOutServerDir(ChangeOutServerDir cloudMessage, ChannelHandlerContext ctx) throws IOException {
+        if (currentDir.getParent().equals(Paths.get("C:\\Java\\cloude\\data\\users"))) {
+            ctx.writeAndFlush(new AccessDeniedMessage());
+            return false;
+        }
+        if (currentDir.getParent() != null) { //&& currentDir.getParent() != Paths.get("C:\\Java\\cloude\\data")
+            currentDir = currentDir.getParent();
+            sendList(ctx);
+            return true;
+        }
+        return false;
     }
 
     private void processFileMessage(FileMessage cloudMessage, ChannelHandlerContext ctx) throws IOException, SQLException {
         Files.write(currentDir.resolve(cloudMessage.getFileName()), cloudMessage.getBytes());
         System.out.println(currentDir+ "\\" +cloudMessage.getFileName());
-        AuthService.setNewFile(cloudMessage.getFileName(), AuthService.findUserId(login), currentDir+ "\\" +cloudMessage.getFileName());
+        AuthService.setNewFile(cloudMessage.getFileName(), AuthService.findUserId(login), currentDir+ "\\" + cloudMessage.getFileName());
         sendList(ctx);
     }
 
     private void processFileRequest(FileRequest cloudMessage, ChannelHandlerContext ctx) throws IOException {
         Path path = currentDir.resolve(cloudMessage.getFileName());
         ctx.writeAndFlush(new FileMessage(path));
+        sendList(ctx);
     }
 }

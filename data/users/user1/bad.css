@@ -1,0 +1,132 @@
+* {margin: 0; padding: 0;}
+body{
+    font-family: sans-serif;
+  }
+  .container {
+    width: 1140px;
+    margin: 0 auto;
+  }
+  .greeting{
+    border: 1px solid purple;  
+  }
+  .menu{
+    border: 1px solid green;
+    margin-top: 16px;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .description{
+    width: 510px;
+    border: 1px solid blue;
+    margin-top: 25px;
+    margin-bottom: 100px;
+  }
+  .description>p{
+    width: 425px;
+  }
+  .what-we-do{
+    border: 1px solid purple;
+    margin-top: 20px;
+  }
+  .business{
+    border: 1px solid green;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-around;
+  }
+  .busmake{
+    width: 359px;
+    border: 1px solid violet;
+    margin-top: 10px;
+    margin-bottom: 10px;
+  }
+  .finishproject{
+    border: 1px solid red;
+    margin-top: 10px;
+  }
+  .parproject{
+    text-align: center;
+  }
+  .footer{
+    border: 1px solid red;
+    margin-top: 30px;
+  }
+  .talk{
+    border: 1px solid white;  
+    margin-top: 2px;
+  }
+  .interes{
+    border: 1px solid pink;
+    width: 495px;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+  .interes>h3{
+    width: 340px;
+  }
+  .list{
+    margin-left: 10px;
+    margin-right: 30px;
+    list-style-position: inside;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+  }
+  .rights{
+    border: 1px solid white;  
+    margin-top: 10px;
+    margin-bottom: 10px;
+  }
+  .contactus{
+    border: 1px solid white;
+    text-align: center;
+  }
+  .contactsblock{
+    display: flex;
+    justify-content: space-around;
+  }
+
+  .par{    
+    font-size: 16px;
+    line-height: 26px;
+    color: #1F3F68;
+  }  
+  .h1_index{    
+    font-size: 64px;
+    color: #1F3F68;
+  }
+  .h2_contacts
+  {
+    font-weight: 500;
+    font-size: 44px;
+    text-align: center;
+  }
+  .h3_class{
+    font-size: 36px;
+    text-align: center;
+  }
+  .h4_class{
+    font-size: 20px;
+    line-height: 30px;
+    color: #1F3F68;
+  }
+  .text{
+    border: 1px solid #356EAD;
+    box-sizing: border-box;
+    border-radius: 10px;
+    opacity: 0.4;
+  }
+  .button{
+    background: #5A98D0;
+    box-shadow: 5px 20px 50px rgba(16, 112, 177, 0.2);
+    border-radius: 10px;
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 26px;
+    text-align: center;
+    color: #FFFFFF;
+    text-transform: uppercase;}
